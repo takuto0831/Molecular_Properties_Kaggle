@@ -8,10 +8,18 @@ NMRを使用して, 分子の構造とダイナミクスを理解することは
 
 これらの相互作用を予測するための速くて信頼性の高い方法は薬化学者がより速くそしてより安価に構造的洞察を得ることを可能にし, 科学者が分子の3D化学構造がその性質と挙動にどのように影響するかを理解することを可能にする. 
 
+## Evaluation
+
+Mean Absolute Errorを使用する. T:スカラーカップリング種類数, n_t: tの観測数?, y_t: スカラーカップリング定数
+
+<div align="center">
+<img src="https://latex.codecogs.com/gif.latex?score&space;=&space;\frac{1}{T}\sum_{t=1}^T&space;\left(\frac{1}{n_t}&space;\sum_{i=1}^{n_t}&space;|y_i&space;-&space;\hat{y}_i|&space;\right)" title="score = \frac{1}{T}\sum_{t=1}^T \left(\frac{1}{n_t} \sum_{i=1}^{n_t} |y_i - \hat{y}_i| \right)" />
+</div>
 
 
+## about target 
 
-## About data
+二つの原子が与えられた時の, スカラーカップリング定数を予測する. このコンペティションでは各分子の全ての原子ペアを予測するのではなく, 訓練データとテストデータに明示的にリストされているペアを予測するだけである. 
 
 ## Referrence
 
