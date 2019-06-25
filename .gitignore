@@ -1,3 +1,5 @@
 input/raw
 jn/.ipynb_checkpoints
 .Rproj.user
+output/submit
+.Rhistory
