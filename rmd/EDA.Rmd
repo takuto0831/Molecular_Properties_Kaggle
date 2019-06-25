@@ -1,0 +1,40 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+```{r}
+train <- read_csv("~/Desktop/Molecular_kaggle/input/raw/train.csv")
+test <- read_csv("~/Desktop/Molecular_kaggle/input/raw/test.csv")
+```
+
+```{r}
+train %>% 
+  tabyl(type) 
+  
+test %>% 
+  tabyl(type)
+```
+
+# sample submit
+
+- mean value
+```{r}
+# calculate mean value
+tmp <- train %>%
+  group_by(type) %>% 
+  summarise(scalar_coupling_constant = mean(scalar_coupling_constant)) %>% 
+  ungroup()
+
+# make submit file
+test %>% 
+  left_join(tmp, by = "type") %>% 
+  dplyr::select(id,scalar_coupling_constant) %>% 
+  write_csv("~/Desktop/Molecular_kaggle/output/submit/example_mean_base.csv")
+```
+
