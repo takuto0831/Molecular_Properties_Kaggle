@@ -24,6 +24,7 @@ Mean Absolute Errorを使用する. T:スカラーカップリング種類数, n
 ## Referrence
 
 - [NMRの基礎知識, 原理編](https://www.chem-station.com/blog/2018/01/nmr.html)
+- [NMRの測定, 解析編](https://www.chem-station.com/blog/2018/01/nmr2.html)
 - [核磁気共鳴の基礎, 伊藤順吉(1946)](https://www.jstage.jst.go.jp/article/kobunshi1952/6/5/6_5_238/_pdf/-char/ja)
 - [核磁気共鳴分析, 三井化学分析センター](https://www.mcanac.co.jp/service/detail/1002.html?c1n=分析機器別分類&c1s=machine&c2n=ＮＭＲ分析&c2s=01)
 - [スカラーカップリング定数](https://www.chem.wisc.edu/areas/reich/nmr/05-hmr-03-jcoupl.htm)
@@ -36,6 +37,7 @@ Mean Absolute Errorを使用する. T:スカラーカップリング種類数, n
 
 ├── README.md
 ├── input
+│   ├── data_definition.xlsx
 │   └── raw
 │       ├── dipole_moments.csv
 │       ├── magnetic_shielding_tensors.csv
@@ -47,8 +49,12 @@ Mean Absolute Errorを使用する. T:スカラーカップリング種類数, n
 │       ├── structures.zip
 │       ├── test.csv
 │       └── train.csv
+├── jn
+│   └── EDA.ipynb
 ├── output
-├── rmd
-└── script
+│   └── submit
+│       └── example_mean_base.csv
+└── rmd
+    └── EDA.Rmd
 
 ```
