@@ -23,6 +23,7 @@ Mean Absolute Errorを使用する. T:スカラーカップリング種類数, n
 
 ## Referrence
 
+- [NMR Facility Coupling constants](http://sopnmr.ucsd.edu/coupling.htm)
 - [NMRの基礎知識, 原理編](https://www.chem-station.com/blog/2018/01/nmr.html)
 - [NMRの測定, 解析編](https://www.chem-station.com/blog/2018/01/nmr2.html)
 - [核磁気共鳴の基礎, 伊藤順吉(1946)](https://www.jstage.jst.go.jp/article/kobunshi1952/6/5/6_5_238/_pdf/-char/ja)
