@@ -2,6 +2,7 @@
 title: "EDA"
 output: html_document
 ---
+# setting 
 
 ```{r}
 library(tidyverse)
@@ -11,14 +12,8 @@ library(janitor)
 ```{r}
 train <- read_csv("~/Desktop/Molecular_kaggle/input/raw/train.csv")
 test <- read_csv("~/Desktop/Molecular_kaggle/input/raw/test.csv")
-```
-
-```{r}
-train %>% 
-  tabyl(type) 
-  
-test %>% 
-  tabyl(type)
+structures <- read_csv("~/Desktop/Molecular_kaggle/input/raw/structures.csv")
+magnetic_shielding <- read_csv("~/Desktop/Molecular_kaggle/input/raw/magnetic_shielding_tensors.csv")
 ```
 
 # sample submit
@@ -36,5 +31,23 @@ test %>%
   left_join(tmp, by = "type") %>% 
   dplyr::select(id,scalar_coupling_constant) %>% 
   write_csv("~/Desktop/Molecular_kaggle/output/submit/example_mean_base.csv")
+```
+
+# structures.csv 
+
+- 結合の3次元配置座標
+
+```{r}
+train %>% head
+structures %>% head
+```
+
+# magnetic_shielding_tensors.csv
+
+```{r}
+magnetic_shielding %>% 
+  head(10000) %>% View
+  ggplot(aes(x=XY,y=YX)) +
+  geom_point()
 ```
 
