@@ -19,6 +19,7 @@ magnetic_shielding <- read_csv("~/Desktop/Molecular_kaggle/input/raw/magnetic_sh
 # sample submit
 
 - mean value
+
 ```{r}
 # calculate mean value
 tmp <- train %>%
