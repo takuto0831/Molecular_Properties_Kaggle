@@ -34,6 +34,25 @@ test %>%
   write_csv("~/Desktop/Molecular_kaggle/output/submit/example_mean_base.csv")
 ```
 
+# train.csv
+
+- 各typeごとで, 目的変数の分布は異なる.
+
+```{r}
+# type ごとの頻度分布
+train %>% 
+  # head(1000) %>% 
+  ggplot(aes(x=scalar_coupling_constant)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~type) +
+  theme_minimal()
+
+train %>% 
+  filter(scalar_coupling_constant < 0) %>% 
+  tabyl(type)
+```
+
+
 # structures.csv 
 
 - 結合の3次元配置座標
