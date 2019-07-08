@@ -5,6 +5,10 @@ output: html_document
 # setting 
 
 ```{r}
+rm(list = ls())
+```
+
+```{r}
 library(tidyverse)
 library(janitor)
 ```
