@@ -36,13 +36,14 @@ class Process:
         f = open(self.home_path + '/input/parameters/' + file_name + '.txt', 'rb')
         list_ = pickle.load(f)
         return list_
+        
     def display_importances(self,importance_df,title,file_name = None):
         cols = (importance_df[["feature", "importance"]]
                 .groupby("feature")
                 .mean()
-                .sort_values(by="importance", ascending=False)[:500].index)
+                .sort_values(by="importance", ascending=False)[:200].index)
         best_features = importance_df.loc[importance_df.feature.isin(cols)]
-        plt.figure(figsize=(14,80))
+        plt.figure(figsize=(14,50))
         sns.barplot(x="importance",y="feature",
                     data=best_features.sort_values(by="importance",ascending=False))
         plt.title(title + 'Features (avg over folds)')
@@ -50,6 +51,7 @@ class Process:
         # save or not
         if file_name is not None: 
             plt.savefig(self.home_path + '/output/image/' + file_name)
+    # 動作未確認
     def extract_best_features(self,importance_df,num,file_name = None):
         cols = (importance_df[["feature", "importance"]]
                 .groupby("feature")
