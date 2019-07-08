@@ -5,7 +5,7 @@ library(makedummies)
 library(data.table)
 library(tictoc)
 library(janitor)
-# library(feather)
+library(skimr)
 
 # input
 train <- read_csv("~/Desktop/Molecular_kaggle/input/raw/train.csv")
@@ -23,41 +23,101 @@ structures <- structures %>%
   left_join(atom_info, by="atom")
 
 # func
-preprocess <- function(df){
+preprocess_func <- function(df){
   ### 1, 原子間の関係性 ###
-  list_ <- vars(x,y,z,radius,electro_num,electro_nega)
+  list_ <- vars(x,y,z,atom,radius,electro_num,electro_nega)
   df_ <- df %>% 
-    # 結合情報の数値化
+    # 結合情報の数値化, label encoding for 'type'
     mutate(via_number = parse_number(type),
            type_number = as.integer(factor(type))) %>% 
     # 結合原子情報の集約
     left_join(structures %>% 
-                rename_at(list_, funs(str_c(.,"0"))) %>% 
-                select(-atom), 
+                rename_at(list_, funs(str_c(.,"_0"))), 
               by=c("molecule_name", "atom_index_0" = "atom_index")) %>%
     left_join(structures %>% 
-                rename_at(list_, funs(str_c(.,"1"))) %>% 
-                select(-atom), 
+                rename_at(list_, funs(str_c(.,"_1"))), 
               by=c("molecule_name", "atom_index_1" = "atom_index")) %>%
     # 原子間距離(3d, x, y, z)
-    mutate(distance = sqrt((x0-x1)^2 + (y0-y1)^2 + (z0-z1)^2),
-           distance_x = sqrt((x0-x1)^2),
-           distance_y = sqrt((y0-y1)^2),
-           distance_z = sqrt((z0-z1)^2)) %>% 
-    mutate(bond_exist = if_else(distance < (radius0 + radius1), 1, 0), # 結合が存在する?
-           electro_num_diff = sqrt((electro_num0-electro_num1)^2),
-           electro_nega_diff = sqrt((electro_nega0-electro_nega1)^2))
-    
-  ### 2. 各原子の情報 ###
-  #df_ <- df_ %>% 
-  #  gr
-  
-  ### ?. 不要な情報削除 ###
-  #df_ <- df %>% 
-  #  select(-c(x0,y0,z0,x1,y1,z1,radius0,radius1,electro_nega0,electro_nega1,
-  #            electro_num0, electro_num1)) 
+    mutate(distance = sqrt((x_0-x_1)^2 + (y_0-y_1)^2 + (z_0-z_1)^2),
+           distance_x = sqrt((x_0-x_1)^2),
+           distance_y = sqrt((y_0-y_1)^2),
+           distance_z = sqrt((z_0-z_1)^2)) %>% 
+    mutate(bond_exist = if_else(distance < (radius_0 + radius_1), 1, 0), # 結合が存在する?
+           electro_num_diff = sqrt((electro_num_0-electro_num_1)^2),
+           electro_nega_diff = sqrt((electro_nega_0-electro_nega_1)^2)) %>% 
+    ### 2. 各原子の情報 ###
+    # about atom_0
+    group_by(molecule_name, atom_index_0) %>% 
+    mutate(couple_number_0 = n_unique(atom_index_1),
+           type_link_0 = str_c(type,collapse=" "),
+           inv_dist_0 = 1/sum(1/distance^3),
+           inv_dist_0_R = 1/sum(1/((distance-radius_0-radius_1)^2)),
+           inv_dist_0_E = 1/sum(1/((distance*(0.5*electro_nega_0+0.5*electro_nega_1))^2))) %>% 
+    ungroup() %>% 
+    # about atom_1
+    group_by(molecule_name, atom_index_1) %>% 
+    mutate(couple_number_1 = n_unique(atom_index_0),
+           type_link_1 = str_c(type,collapse=" "),
+           inv_dist_1 = 1/sum(1/distance^3),
+           inv_dist_1_R = 1/sum(1/(distance-radius_0-radius_1)^2),
+           inv_dist_1_E = 1/sum(1/((distance*(0.5*electro_nega_0+0.5*electro_nega_1))^2))) %>% 
+    ungroup() %>% 
+    ### 3. 複合情報 ###
+    # 前処理 (type_link to label encoding and spread table)
+    gather(key = type_link_name, value=type_link, type_link_0, type_link_1) %>% 
+    mutate(type_link_number = as.integer(factor(type_link))) %>% 
+    select(-type_link) %>% 
+    tidyr::spread(key = type_link_name, value=type_link_number) %>% 
+    # about molecule and atom (解釈よくわからん)
+    group_by(molecule_name, atom_index_0, atom_1) %>%
+    mutate(distance_atom_num_0 = sum(distance)/n()) %>% 
+    ungroup() %>% 
+    group_by(molecule_name, atom_index_1, atom_1) %>%
+    mutate(distance_atom_num_1 = sum(distance)/n()) %>% 
+    ungroup()
+    # about type_link_0
+    group_by(type_link_0) %>% 
+    mutate(type_link_mean_0 = mean(inv_dist_0) - inv_dist_0) %>% 
+    ungroup() %>% 
+    # about type_link_1
+    group_by(type_link_1) %>% 
+    mutate(type_link_mean_1 = mean(inv_dist_1) - inv_dist_0) %>% 
+    ungroup() %>% 
+    # about type_link_0 and type_link_1
+    group_by(type_link_0, type_link_1) %>% 
+    mutate(type_ling_count = n()) %>% 
+    ungroup() %>% 
+    # about all
+    mutate(inv_dist_PR = (inv_dist_0_R*inv_dist_1_R)/(inv_dist_0_R+inv_dist_1_R),
+           inv_dist_PE = (inv_dist_0_E*inv_dist_1_E)/(inv_dist_0_E+inv_dist_1_E)) 
   return(df_)
 }
+
+# メモリ的に pythonでやるのが無難?
+aggregate_func <- function(df){
+  # not rename column
+  not_list0 <- vars(-molecule_name, -atom_index_0)
+  not_list1 <- vars(-molecule_name, -atom_index_1)
+  # aggregated column
+  agg_list <- vars(distance,distance_x,distance_y,distance_z)
+  # about atom 0
+  tmp0 <- df %>% 
+    group_by(molecule_name, atom_index_0) %>%
+    summarise_at(agg_list, funs(min, max, mean, sd)) %>% 
+    ungroup() %>% 
+    rename_at(not_list0,funs(str_c(.,"_0")))
+  # about atom1
+  tmp1 <- df %>% 
+    group_by(molecule_name, atom_index_1) %>%
+    summarise_at(agg_list, funs(min, max, mean, sd)) %>% 
+    ungroup() %>% 
+    rename_at(not_list1,funs(str_c(.,"_1")))
+  df_ <- df %>% 
+    left_join(tmp0,by=c("molecule_name", "atom_index_0")) %>% 
+    left_join(tmp1,by=c("molecule_name", "atom_index_1"))
+  return(df_)
+}
+
 # get dummies function
 dummy_func <- function(df){
   tmp <- df %>% 
@@ -65,24 +125,6 @@ dummy_func <- function(df){
     makedummies(basal_level = TRUE, col ="type")
   return(bind_cols(df,tmp))
 }
-### お試し####
-tmp <- train_test_ %>% 
-  head(100) %>% 
-  # about atom_0
-  group_by(molecule_name, atom_index_0) %>% 
-  mutate(inv_dist_0 = 1/sum(1/distance^3),
-         inv_dist_0_R = 1/sum(1/((distance-radius0-radius1)^2)),
-         inv_dist_0_E = 1/sum(1/((distance*(0.5*electro_nega0+0.5*electro_nega1))^2))) %>% 
-  ungroup() %>% 
-  # about atom_1
-  group_by(molecule_name, atom_index_1) %>% 
-  mutate(inv_dist_1 = 1/sum(1/distance^3),
-         inv_dist_1_R = 1/sum(1/(distance-radius0-radius1)^2),
-         inv_dist_1_E = 1/sum(1/((distance*(0.5*electro_nega0+0.5*electro_nega1))^2))) %>% 
-  ungroup() %>% 
-  # about atom_0 and atom_1
-  mutate(inv_dist_PR = (inv_dist_0_R*inv_dist_1_R)/(inv_dist_0_R+inv_dist_1_R),
-         inv_dist_PE = (inv_dist_0_E*inv_dist_1_E)/(inv_dist_0_E+inv_dist_1_E))
 
 #################### execute func #####################
 # merge
@@ -91,15 +133,24 @@ rm(train,test); gc()
 
 # aggregate
 train_test_ <- 
-  preprocess(train_test)
+  train_test %>% 
+  #head(100000) %>% 
+  preprocess_func() %>% 
+  aggregate_func()
   # dummy_func()
+
 # extract features columns
-features <- train_ %>% 
+features <- train_test_ %>% 
   # 特徴量として扱わないカラム
-  select(-c(id,molecule_name,atom_index_0,atom_index_1,type,scalar_coupling_constant)) %>% 
+  select(-c(id,molecule_name,atom_index_0,atom_index_1,type,scalar_coupling_constant,
+            atom_0,atom_1,x_0,y_0,z_0,x_1,y_1,z_1,radius_0,radius_1,electro_nega_0,
+            electro_nega_1,type_number,electro_num_0, electro_num_1)) %>% 
   colnames() %>% 
   data.frame(feature = .)
+
 # save to file
-write_csv(train_, "~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
-write_csv(test_, "~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
+train <- train_test_ %>% filter(!is.na(scalar_coupling_constant))
+test <- train_test_ %>% filter(is.na(scalar_coupling_constant))
+write_csv(train, "~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
+write_csv(test, "~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
 write_csv(features, "~/Desktop/Molecular_kaggle/input/preprocess/features.csv")
