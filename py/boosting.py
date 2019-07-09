@@ -14,14 +14,13 @@ class LightGBM:
     def __init__(self):
         ### important value name
         self.target = 'scalar_coupling_constant'
-        # self.group = 'type' # for StratifiedKFold?
         self.group = 'molecule_name' # for GroupKFold
-        
+  
         ### home path
         self.home_path = os.path.expanduser("~") + '/Desktop/Molecular_kaggle'
         ### validation setting
         #self.fold = StratifiedKFold(n_splits=4, shuffle=True, random_state=831)
-        self.fold = GroupKFold(n_splits=4) # shuffleもある
+        self.fold = GroupKFold(n_splits=5) # shuffleもある
 
     def Model(self,train,trn_index,val_index,features,param={}):
         # data set
@@ -36,6 +35,7 @@ class LightGBM:
                           verbose_eval= 200, 
                           early_stopping_rounds= 200)
         return model
+        
     def lightgbm(self,train,test,features,param={}, name = "Lightgbm Regression"):
         # 実行環境の確認
         print('validation method:', self.fold, 'groups value:', self.group)
@@ -58,7 +58,7 @@ class LightGBM:
             val_pred[val_index] = model.predict(train.iloc[val_index][features], num_iteration=model.best_iteration)
             test_pred += model.predict(test[features], num_iteration=model.best_iteration) / self.fold.n_splits
         return val_pred, test_pred, fold_importance
-    # 実行未確認
+    # 動作未確認!!
     def tuning(self,train,features,trial):
         # score
         score = []
