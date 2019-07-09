@@ -13,7 +13,7 @@ test <- read_csv("~/Desktop/Molecular_kaggle/input/raw/test.csv")
 structures <- read_csv("~/Desktop/Molecular_kaggle/input/raw/structures.csv")
 
 # add sub information (原子量とか?)
-atom_info <- dplyr::data_frame(
+atom_info <- tibble::data_frame(
   atom = c("H","C","N","O","F"),
   radius = c(0.38,0.77,0.75,0.73, 0.71),
   electro_num = c(1, 4, 3, 2, 1),

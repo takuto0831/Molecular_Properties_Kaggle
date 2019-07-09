@@ -1,3 +1,8 @@
+# 読み込み
+train <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
+test <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
+features <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/features.csv")
+
 # python で実行すれば良い?
 
 aggregate_func <- function(df){
@@ -42,3 +47,8 @@ train_test_ <-
   train_test %>% 
   aggregate_func()
   # dummy_func()
+
+# split data
+train <- train_test_ %>% filter(!is.na(scalar_coupling_constant))
+test <- train_test_ %>% filter(is.na(scalar_coupling_constant))
+rm(train_test_); gc()
