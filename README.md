@@ -13,7 +13,7 @@ NMRを使用して, 分子の構造とダイナミクスを理解することは
 Log of Mean Absolute Errorを使用する. T:スカラーカップリング種類(type), n_t: tの観測数, y_t: スカラーカップリング定数
 
 <div align="center">
-<img src="https://latex.codecogs.com/gif.latex?score&space;=&space;\frac{1}{T}\sum_{t=1}^T&space;\left(\frac{1}{n_t}&space;\sum_{i=1}^{n_t}&space;|y_i&space;-&space;\hat{y}_i|&space;\right)" title="score = \frac{1}{T}\sum_{t=1}^T \log\left(\frac{1}{n_t} \sum_{i=1}^{n_t} |y_i - \hat{y}_i| \right)" />
+<img src="https://latex.codecogs.com/gif.latex?score&space;=&space;\frac{1}{T}\sum_{t=1}^T&space;\log\left(\frac{1}{n_t}&space;\sum_{i=1}^{n_t}&space;|y_i&space;-&space;\hat{y}_i|&space;\right)" title="score = \frac{1}{T}\sum_{t=1}^T \log\left(\frac{1}{n_t} \sum_{i=1}^{n_t} |y_i - \hat{y}_i| \right)" />
 </div>
 
 
