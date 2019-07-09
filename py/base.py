@@ -7,6 +7,7 @@ import seaborn as sns
 import time, os, sys
 from contextlib import contextmanager
 from sklearn.cluster import KMeans
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 class Process:
     def __init__(self):
@@ -24,10 +25,7 @@ class Process:
         features = features["feature"].tolist() # features list
         return train, test, features
         
-    def submit(self,predict,tech):
-        # make submit file
-        submit_file = pd.read_csv(self.home_path + "/input/raw/sample_submission.csv")
-        submit_file["scalar_coupling_constant"] = predict
+    def submit(self,submit_file,tech):
         # save for output/(technic name + datetime + .csv)
         file_name = self.home_path + '/output/submit/' + tech + '_' + datetime.now().strftime("%Y%m%d") + ".csv"
         submit_file.to_csv(file_name, index=False)
@@ -37,6 +35,7 @@ class Process:
         list_ = pickle.load(f)
         return list_
         
+    # 動作未確認 !!!!
     def display_importances(self,importance_df,title,file_name = None):
         cols = (importance_df[["feature", "importance"]]
                 .groupby("feature")
@@ -51,7 +50,7 @@ class Process:
         # save or not
         if file_name is not None: 
             plt.savefig(self.home_path + '/output/image/' + file_name)
-    # 動作未確認
+    # 動作未確認 !!!!
     def extract_best_features(self,importance_df,num,file_name = None):
         cols = (importance_df[["feature", "importance"]]
                 .groupby("feature")
@@ -63,7 +62,35 @@ class Process:
             feather.write_dataframe(cols, self.home_path + '/input/features/' + file_name + '.feather')
         return cols[:num]["feature"].tolist()
         
-# other
+# モデルの実行を補助する関数
+class Assistance:
+    def __init__(self):
+        self.target = 'scalar_coupling_constant'
+        self.idx = 'id'
+    def split_execute_model(self,split_value, train, test, model, model_arg):
+        # setting
+        submit_df = pd.DataFrame()
+        mean_log_mae = []
+        # split list
+        split_list = train[split_value].unique().copy()
+        # model execute by split list
+        for list_ in split_list:
+            print("~~~~~~~~~ type name:", list_, " ~~~~~~~~~")
+            # update model_arg dictionary
+            train_ = train[train[split_value] == list_].copy()
+            test_ = test[test[split_value] == list_].copy()
+            model_arg.update(train = train_, test = test_)
+            # model
+            val_pred, test_pred, importance = model(**model_arg)
+            # concat data and validation value
+            mean_log_mae.append(np.log(mean_absolute_error(train_[self.target].values, val_pred)))
+            test_[self.target] = test_pred        
+            submit_df = pd.concat([submit_df,test_[[self.idx,self.target]]], axis=0)
+        # sort by id
+        submit_df = submit_df.sort_values(self.idx)
+        return mean_log_mae, submit_df
+  
+# other 
 def line(text):
     line_notify_token = '07tI1nvYaAtGaLdsCaxKZxkboOU0OsvLregXqodN2ZV' #先程発行したコードを貼ります
     line_notify_api = 'https://notify-api.line.me/api/notify'
