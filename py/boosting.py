@@ -1,7 +1,7 @@
 import numpy as np # linear algebra
 import pandas as pd # data processing
 import lightgbm as lgb
-# import xgboost as xgb
+import xgboost as xgb
 from functools import partial
 import optuna, os
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -32,8 +32,8 @@ class LightGBM:
                           # categorical_feature = category_features,
                           num_boost_round= 2000, 
                           valid_sets = [trn_data, val_data],
-                          verbose_eval= 200, 
-                          early_stopping_rounds= 200)
+                          verbose_eval= 100, 
+                          early_stopping_rounds= 100)
         return model
         
     def lightgbm(self,train,test,features,param={}, name = "Lightgbm Regression"):
@@ -50,14 +50,13 @@ class LightGBM:
             model = self.Model(train,trn_index,val_index,features,param)
             # model importance 
             fold_importance = pd.DataFrame({'feature': features, 
-                                            'importance': model.feature_importance(),
-                                            'fold': i + 1})
+                                            'importance': model.feature_importance()})
             feature_importance = pd.concat([feature_importance, fold_importance], axis=0)
             
-            # predicting validation data and predicting data
+            # validation data and test data
             val_pred[val_index] = model.predict(train.iloc[val_index][features], num_iteration=model.best_iteration)
             test_pred += model.predict(test[features], num_iteration=model.best_iteration) / self.fold.n_splits
-        return val_pred, test_pred, fold_importance
+        return val_pred, test_pred, feature_importance
     # 動作未確認!!
     def tuning(self,train,features,trial):
         # score
