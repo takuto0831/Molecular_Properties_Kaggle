@@ -30,7 +30,7 @@ class LightGBM:
         model = lgb.train(param, 
                           trn_data, 
                           # categorical_feature = category_features,
-                          num_boost_round= 10000, 
+                          num_boost_round= 2000, 
                           valid_sets = [trn_data, val_data],
                           verbose_eval= 200, 
                           early_stopping_rounds= 200)
@@ -39,11 +39,11 @@ class LightGBM:
     def lightgbm(self,train,test,features,param={}, name = "Lightgbm Regression"):
         # 実行環境の確認
         print('validation method:', self.fold, 'groups value:', self.group)
-        # バリデーション,テスト予測,特徴量の寄与度
+        # バリデーション,テスト予測,特徴量の寄与度格納用
         val_pred = np.zeros(train.shape[0])
         test_pred = np.zeros(test.shape[0])
         feature_importance = pd.DataFrame()
-        # モデル実行 (self.groupsを元に, バリデーションを決定する)
+        # モデル実行 (self.groupを元に, バリデーションを決定する)
         for i,(trn_index, val_index) in enumerate(self.fold.split(train,groups=train[self.group].values)):
             print("fold n°{}".format(i+1))
             # model execute

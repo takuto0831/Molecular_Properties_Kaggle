@@ -13,6 +13,7 @@ class Process:
     def __init__(self):
         # home path
         self.home_path = os.path.expanduser("~") + '/Desktop/Molecular_kaggle'
+
     def read_data(self):
         #Loading Train and Test Data
         train = pd.read_csv(self.home_path + '/input/preprocess/train.csv')
@@ -70,7 +71,7 @@ class Assistance:
     def split_execute_model(self,split_value, train, test, model, model_arg):
         # setting
         submit_df = pd.DataFrame()
-        mean_log_mae = []
+        log_mae = []
         # split list
         split_list = train[split_value].unique().copy()
         # model execute by split list
@@ -83,12 +84,12 @@ class Assistance:
             # model
             val_pred, test_pred, importance = model(**model_arg)
             # concat data and validation value
-            mean_log_mae.append(np.log(mean_absolute_error(train_[self.target].values, val_pred)))
+            log_mae.append(np.log(mean_absolute_error(train_[self.target].values, val_pred)))
             test_[self.target] = test_pred        
             submit_df = pd.concat([submit_df,test_[[self.idx,self.target]]], axis=0)
         # sort by id
         submit_df = submit_df.sort_values(self.idx)
-        return mean_log_mae, submit_df
+        return log_mae, submit_df
   
 # other 
 def line(text):
