@@ -19,7 +19,7 @@ atom_info <- tibble::data_frame(
   atom = c("H","C","N","O","F"),
   radius = c(0.38,0.77,0.75,0.73, 0.71), # 原子半径
   # radius = c(1.20, 1.70, 1.55, 1.52, 1.47), # ファンデルワールス半径
-  electro_num = c(1, 4, 3, 2, 1),
+  # electro_num = c(1, 4, 3, 2, 1), # 活用あるか?
   electro_nega = c(2.2, 2.55, 3.04, 3.44, 3.98)
 )
 structures <- structures %>% 
@@ -28,7 +28,7 @@ structures <- structures %>%
 ######################## function ########################
 preprocess_func <- function(df){
   ### 1, 原子間の関係性 ###
-  list_ <- vars(x,y,z,atom,radius,electro_num,electro_nega)
+  list_ <- vars(x,y,z,atom,radius,electro_nega)
   df_ <- df %>% 
     # 結合情報の数値化, label encoding for 'type'
     mutate(via_number = parse_number(type),
@@ -49,9 +49,9 @@ preprocess_func <- function(df){
     # mutate(coulomb = 1/distance,
     #        vander = 1/distance^3,
     #        yukawa = exp(-distance)) %>% 
-    mutate(bond_exist = if_else(distance < (radius_0 + radius_1), 1, 0), # 結合が存在する?
-           electro_num_diff = sqrt((electro_num_0-electro_num_1)^2),
-           electro_nega_diff = sqrt((electro_nega_0-electro_nega_1)^2))
+    #mutate(bond_exist = if_else(distance < (radius_0 + radius_1), 1, 0), # typeに情報含まれている
+    #       electro_num_diff = sqrt((electro_num_0-electro_num_1)^2), # 
+    #       electro_nega_diff = abs(electro_nega_0-electro_nega_1))
   rm(df,structures); gc()
   ### 2. 各原子の情報 ###
   # about atom_0
@@ -100,6 +100,9 @@ preprocess_func <- function(df){
   #   # about all
   #   mutate(inv_dist_PR = (inv_dist_0_R*inv_dist_1_R)/(inv_dist_0_R+inv_dist_1_R),
   #          inv_dist_PE = (inv_dist_0_E*inv_dist_1_E)/(inv_dist_0_E+inv_dist_1_E)) 
+  ## 4. 不要カラムの削除
+  df_ <- df_ %>% 
+    select()
   return(df_)
 }
 # aggregate function
@@ -152,7 +155,7 @@ features <- train_test_ %>%
   # 特徴量として扱わないカラム
   select(-c(id,molecule_name,atom_index_0,atom_index_1,type,scalar_coupling_constant,
             atom_0,atom_1,x_0,y_0,z_0,x_1,y_1,z_1,radius_0,radius_1,electro_nega_0,
-            electro_nega_1,type_number,electro_num_0, electro_num_1)) %>% 
+            electro_nega_1,type_number)) %>% 
   colnames() %>% 
   data.frame(feature = .)
 
