@@ -1,3 +1,5 @@
+################# setting ###################
+
 # library
 library(tidyverse)
 library(CatEncoders)
@@ -15,14 +17,15 @@ structures <- read_csv("~/Desktop/Molecular_kaggle/input/raw/structures.csv")
 # add sub information (原子量とか?)
 atom_info <- tibble::data_frame(
   atom = c("H","C","N","O","F"),
-  radius = c(0.38,0.77,0.75,0.73, 0.71),
+  radius = c(0.38,0.77,0.75,0.73, 0.71), # 原子半径
+  # radius = c(1.20, 1.70, 1.55, 1.52, 1.47), # ファンデルワールス半径
   electro_num = c(1, 4, 3, 2, 1),
   electro_nega = c(2.2, 2.55, 3.04, 3.44, 3.98)
 )
 structures <- structures %>% 
   left_join(atom_info, by="atom")
 
-# func
+######################## function ########################
 preprocess_func <- function(df){
   ### 1, 原子間の関係性 ###
   list_ <- vars(x,y,z,atom,radius,electro_num,electro_nega)
@@ -162,3 +165,9 @@ rm(train_test_); gc()
 write_csv(train, "~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
 write_csv(test, "~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
 write_csv(features, "~/Desktop/Molecular_kaggle/input/preprocess/features.csv")
+
+
+######################## 考察用 ##########################
+#train <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
+#test <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
+#features <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/features.csv")
