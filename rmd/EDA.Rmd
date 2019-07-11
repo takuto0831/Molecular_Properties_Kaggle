@@ -62,9 +62,15 @@ train %>%
 - 結合の3次元配置座標
 
 ```{r}
-train %>% head
 structures %>% head
 ```
+
+分子の密集度
+
+```{r}
+
+```
+
 
 # magnetic_shielding_tensors.csv
 
