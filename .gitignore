@@ -5,3 +5,4 @@ output/submit
 .Rhistory
 py/__pycache__
 input/preprocess
+output/image
