@@ -30,7 +30,7 @@ Log of Mean Absolute Errorを使用する. T:スカラーカップリング種�
 - [核磁気共鳴分析, 三井化学分析センター](https://www.mcanac.co.jp/service/detail/1002.html?c1n=分析機器別分類&c1s=machine&c2n=ＮＭＲ分析&c2s=01)
 - [スカラーカップリング定数](https://www.chem.wisc.edu/areas/reich/nmr/05-hmr-03-jcoupl.htm)
 - [角運動量](http://w3e.kanazawa-it.ac.jp/math/physics/category/mechanics/motion/angular_momentum/henkan-tex.cgi?target=/math/physics/category/mechanics/motion/angular_momentum/angular_momentum.html)
-- [共有結合について(構造等)](http://keirinkan.com/kori/kori_chemistry/kori_chemistry_2/contents/ch-2/1-bu/1-1-2.htm)
+- [共有結合について(構造, イオン, 電気陰性度)](http://keirinkan.com/kori/kori_chemistry/kori_chemistry_2/contents/ch-2/1-bu/1-1-2.htm)
 
 ## Directory
 
