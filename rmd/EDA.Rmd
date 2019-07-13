@@ -30,15 +30,15 @@ magnetic_shielding <- read_csv("~/Desktop/Molecular_kaggle/input/raw/magnetic_sh
 # add sub information (原子量とか?)
 atom_info <- tibble::data_frame(
   atom = c("H","C","N","O","F"),
-  radius = c(0.38,0.77,0.75,0.73, 0.71), # 原子半径
+  radius = c(0.38,0.77,0.75,0.73, 0.71) # 原子半径
   # radius = c(1.20, 1.70, 1.55, 1.52, 1.47), # ファンデルワールス半径
   # electro_num = c(1, 4, 3, 2, 1), # 活用あるか?
-  electro_nega = c(2.2, 2.55, 3.04, 3.44, 3.98)
+  # electro_nega = c(2.2, 2.55, 3.04, 3.44, 3.98) 
 )
 
 preprocess_func <- function(df){
   ### 1, 原子間の関係性 ###
-  list_ <- vars(x,y,z,atom,radius,electro_nega)
+  list_ <- vars(x,y,z,atom,radius)
   df_ <- df %>% 
     # 結合情報の数値化, label encoding for 'type'
     mutate(via_number = parse_number(type),
@@ -54,10 +54,9 @@ preprocess_func <- function(df){
     mutate(distance = sqrt((x_0-x_1)^2 + (y_0-y_1)^2 + (z_0-z_1)^2),
            distance_x = sqrt((x_0-x_1)^2),
            distance_y = sqrt((y_0-y_1)^2),
-           distance_z = sqrt((z_0-z_1)^2)) %>%
-    mutate(bond_exist = if_else(distance < (radius_0 + radius_1), 1, 0), # 結合が存在する?
-           electro_nega_diff = abs(electro_nega_0-electro_nega_1))}
-  
+           distance_z = sqrt((z_0-z_1)^2))}
+
+# 結合
 structures <- structures %>% 
   left_join(atom_info, by="atom")
 
@@ -80,38 +79,33 @@ rm(train_test); gc()
 
 ```{r}
 # type ごとの頻度分布
-train %>% 
+p <- train %>% 
   # head(1000) %>% 
   ggplot(aes(x=type, y=scalar_coupling_constant)) +
   geom_boxplot() +
   theme_minimal()
+ggsave(plot = p,filename = "../output/image/scaler_coupling_by_type_boxplot.png")
 
-# bond_existごとの頻度分布 (強い)
-# +,-はこれで大別される？
-train %>% 
-  # head(100000) %>% 
-  ggplot(aes(x=factor(bond_exist),y=scalar_coupling_constant)) +
+# 結合の本数ごとの頻度分布
+p <- train %>% 
+  ggplot(aes(x=factor(via_number), y=scalar_coupling_constant)) +
   geom_boxplot() +
   theme_minimal()
+ggsave(plot = p,filename = "../output/image/scaler_coupling_by_via_numver_boxplot.png")
 
-# 電気陰性度の差とtarget (そもそも原子違うから, あんまり関係ない)
-train %>% 
-  filter(bond_exist == 1) %>% 
-  ggplot(aes(x=electro_nega_diff, y = scalar_coupling_constant)) +
-  geom_point() +
-  theme_minimal()
-
-# bond_exist == 0, via_number = 1でも負にはならない
-train %>% 
-  filter(bond_exist == 0) %>%
-  # head(1000000) %>% 
-  ggplot(aes(x=factor(via_number),y= scalar_coupling_constant)) +
+# 原子ごと(atom1)の種類毎の頻度分布
+p <- train %>% 
+  # mutate(tmp = str_sub(type,-1)) %>% 
+  ggplot(aes(x=atom_1, y=scalar_coupling_constant)) +
   geom_boxplot() +
   theme_minimal()
+ggsave(plot = p,filename = "../output/image/scaler_coupling_by_atom1_boxplot.png")
 
+# 
 train %>% 
-  group_by(type) %>% 
-  summarise(n())
+  filter(scalar_coupling_constant < 0.001 & 
+         scalar_coupling_constant > -0.001) %>% 
+  View
 ```
 
 
