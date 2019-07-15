@@ -17,65 +17,21 @@ library(janitor)
 
 ```{r}
 # raw data
-train <- read_csv("~/Desktop/Molecular_kaggle/input/raw/train.csv")
-test <- read_csv("~/Desktop/Molecular_kaggle/input/raw/test.csv")
-structures <- read_csv("~/Desktop/Molecular_kaggle/input/raw/structures.csv")
+# train <- read_csv("~/Desktop/Molecular_kaggle/input/raw/train.csv")
+# test <- read_csv("~/Desktop/Molecular_kaggle/input/raw/test.csv")
+# structures <- read_csv("~/Desktop/Molecular_kaggle/input/raw/structures.csv")
 magnetic_shielding <- read_csv("~/Desktop/Molecular_kaggle/input/raw/magnetic_shielding_tensors.csv")
+scalar_coupling <- 
+  read_csv("~/Desktop/Molecular_kaggle/input/raw/scalar_coupling_contributions.csv")
 
+# preprocessed data
+train <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/train.csv")
+test <- read_csv("~/Desktop/Molecular_kaggle/input/preprocess/test.csv")
 ```
 
 ## Preprocessing for EDA
 
-```{r}
-# add sub information (原子量とか?)
-atom_info <- tibble::data_frame(
-  atom = c("H","C","N","O","F"),
-  radius = c(0.38,0.77,0.75,0.73, 0.71) # 原子半径
-  # radius = c(1.20, 1.70, 1.55, 1.52, 1.47), # ファンデルワールス半径
-  # electro_num = c(1, 4, 3, 2, 1), # 活用あるか?
-  # electro_nega = c(2.2, 2.55, 3.04, 3.44, 3.98) 
-)
-
-preprocess_func <- function(df){
-  ### 1, 原子間の関係性 ###
-  list_ <- vars(x,y,z,atom,radius)
-  df_ <- df %>% 
-    # 結合情報の数値化, label encoding for 'type'
-    mutate(via_number = parse_number(type),
-           type_number = as.integer(factor(type))) %>% 
-    # 結合原子情報の集約
-    left_join(structures %>% 
-                rename_at(list_, funs(str_c(.,"_0"))), 
-              by=c("molecule_name", "atom_index_0" = "atom_index")) %>%
-    left_join(structures %>% 
-                rename_at(list_, funs(str_c(.,"_1"))), 
-              by=c("molecule_name", "atom_index_1" = "atom_index")) %>%
-    # 原子間距離(3d, x, y, z)
-    mutate(distance = sqrt((x_0-x_1)^2 + (y_0-y_1)^2 + (z_0-z_1)^2),
-           distance_x = sqrt((x_0-x_1)^2),
-           distance_y = sqrt((y_0-y_1)^2),
-           distance_z = sqrt((z_0-z_1)^2))}
-
-# 結合
-structures <- structures %>% 
-  left_join(atom_info, by="atom")
-
-# func
-train_test <- 
-  bind_rows(train,test) %>% 
-  preprocess_func() 
-rm(train,test); gc()
-
-# split train data and test data 
-train <- train_test %>% filter(!is.na(scalar_coupling_constant))
-test <- train_test %>% filter(is.na(scalar_coupling_constant))
-rm(train_test); gc()
-```
-
 # train.csv
-
-- 各typeごとで, 目的変数の分布は異なる? (全部分ける必要ない？)
-- via_number == 1 or other??
 
 ```{r}
 # type ごとの頻度分布
@@ -101,11 +57,25 @@ p <- train %>%
   theme_minimal()
 ggsave(plot = p,filename = "../output/image/scaler_coupling_by_atom1_boxplot.png")
 
-# 
-train %>% 
-  filter(scalar_coupling_constant < 0.001 & 
-         scalar_coupling_constant > -0.001) %>% 
-  View
+# 原子間距離, target変数
+p <- train %>% 
+  ggplot(aes(x=distance, y=scalar_coupling_constant)) +
+  geom_point() +
+  facet_wrap(~type) + 
+  theme_minimal()
+
+ggsave(plot = p,filename = "../output/image/scaler_coupling_by_distance_pointplot.png")
+
+# 原子間距離 / 経由距離 , target 変数
+p <- train %>% 
+  filter(!is.na(path_distance)) %>% 
+  mutate(distance_rate = distance / path_distance) %>% 
+  ggplot(aes(x=distance_rate, y=scalar_coupling_constant)) +
+  geom_point() +
+  facet_wrap(~type) + 
+  theme_minimal()
+
+ggsave(plot = p,filename = "../output/image/scaler_coupling_by_distance_rate_pointplot.png")
 ```
 
 
