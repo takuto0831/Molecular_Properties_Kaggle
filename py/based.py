@@ -65,7 +65,7 @@ class Assistance:
     def split_execute_model(self,split_value, train, test, model, model_arg):
         # setting
         submit_df = pd.DataFrame()
-        log_mae = []
+        log_mae_df = pd.DataFrame()
         importance_all = pd.DataFrame()
         # split list
         split_list = train[split_value].unique().copy()
@@ -80,13 +80,15 @@ class Assistance:
             val_pred, test_pred, importance = model(**model_arg)
             # summary result
             importance_all = pd.concat([importance_all, importance], axis=0) # importance
-            log_mae.append(np.log(mean_absolute_error(train_[self.target].values, val_pred))) # validation
+            tmp = np.log(mean_absolute_error(train_[self.target].values, val_pred))
+            log_mae_df = pd.concat([log_mae_df, pd.DataFrame({'split_value': list_, 'log_mae': tmp},index=[''])], axis=0)
+            # log_mae.append(np.log(mean_absolute_error(train_[self.target].values, val_pred))) # validation
             test_[self.target] = test_pred # test
             submit_df = pd.concat([submit_df,test_[[self.idx,self.target]]], axis=0)
         # sort by id
         submit_df = submit_df.sort_values(self.idx)
         # mean of columns
-        return log_mae, submit_df, importance_all
+        return log_mae_df, submit_df, importance_all
         
     def test_sampling(self, train, key, rate=0.2):
         # type のごとにランダムサンプリング
