@@ -98,8 +98,8 @@ class Assistance:
   
 # other 
 def line(text):
-    line_notify_token = '07tI1nvYaAtGaLdsCaxKZxkboOU0OsvLregXqodN2ZV' # 発行したコード
-    line_notify_api = 'https://notify-api.line.me/api/notify'
+    line_notify_token = '**********' # 発行したコード
+    line_notify_api = '*********'
     message = '\n' + text
     # 変数messageに文字列をいれて送信します トークン名の隣に文字が来てしまうので最初に改行しました
     payload = {'message': message}
